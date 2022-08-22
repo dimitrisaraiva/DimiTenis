@@ -302,6 +302,11 @@ public class Fornecedores extends JDialog {
 		contentPanel.add(btnAdicionar);
 		
 		JButton btnEditar = new JButton("");
+		btnEditar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				alterarFornecedor();
+			}
+		});
 		btnEditar.setIcon(new ImageIcon(Fornecedores.class.getResource("/img/Editar.png")));
 		btnEditar.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		btnEditar.setToolTipText("Editar");
@@ -311,6 +316,11 @@ public class Fornecedores extends JDialog {
 		contentPanel.add(btnEditar);
 		
 		JButton btnRemovar = new JButton("");
+		btnRemovar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				excluirFornecedor();
+			}
+		});
 		btnRemovar.setIcon(new ImageIcon(Fornecedores.class.getResource("/img/Remover.png")));
 		btnRemovar.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		btnRemovar.setToolTipText("Remover");
@@ -561,7 +571,7 @@ private void limparCamposFornecedor() {
 				// Executar a query e inserir o usuário no banco
 				pst.executeUpdate();
 				// Encerrar a conexão
-				JOptionPane.showMessageDialog(null, "Usuário Cadastrado com Sucesso!");
+				JOptionPane.showMessageDialog(null, "Fornecedor Cadastrado com Sucesso!");
 				con.close();
 		} catch (Exception e) {
 			System.out.println(e);
@@ -570,4 +580,97 @@ private void limparCamposFornecedor() {
 		}		
 	}
 	
-}
+	private void alterarFornecedor() {
+		
+		if (txtForCnpj.getText().isEmpty()) {
+			JOptionPane.showMessageDialog(null, "Preencha o CNPJ do fornecedor");
+			txtForCnpj.requestFocus();
+		} else if (txtForRazao.getText().isEmpty()) {
+			JOptionPane.showMessageDialog(null, "Infome a razão social do fornecedor");
+			txtForRazao.requestFocus();
+		}else if (txtForFantasia.getText().isEmpty()) {
+			JOptionPane.showMessageDialog(null, "Infome o nome fantasia do fornecedor");
+			txtForFantasia.requestFocus();
+		}else if (txtForCep.getText().isEmpty()) {
+			JOptionPane.showMessageDialog(null, "Infome o CEP do fornecedor");
+			txtForCep.requestFocus();
+		}else if (txtForEndereco.getText().isEmpty()) {
+			JOptionPane.showMessageDialog(null, "Infome o endereco fornecedor");
+			txtForEndereco.requestFocus();
+		}else if (txtForBairro.getText().isEmpty()) {
+			JOptionPane.showMessageDialog(null, "Infome o bairro do fornecedor");
+			txtForBairro.requestFocus();
+		}else if (txtForCidade.getText().isEmpty()) {
+			JOptionPane.showMessageDialog(null, "Infome o nome fantasia do fornecedor");
+			txtForCidade.requestFocus();
+		}else if (cboForUf.getSelectedItem().equals("")) {
+			JOptionPane.showMessageDialog(null, "Infome o UF do fornecedor");
+			cboForUf.requestFocus();
+		} else {
+			 
+			String create2 = "update fornecedores set cnpj=?, ie=?,im=?,razao=?,fantasia=?,site=?,fone=?,contato=?,email=?,cep=?,endereco=?,numero=?,complemento=?,bairro=?,cidade=?,uf=? where idfor=?";
+			try {
+				// Estabelecer a conexão
+				Connection con = dao.conectar();
+				// Preparar a execução da query
+				PreparedStatement pst = con.prepareStatement(create2);
+				// Substituir os ???? pelo conteúdo das caixas de texto
+				pst.setString(1, txtForCnpj.getText());
+				pst.setString(2,txtForIe.getText());
+				pst.setString(3,txtForIm.getText());
+				pst.setString(4, txtForRazao.getText());
+				pst.setString(5,txtForFantasia.getText());
+				pst.setString(6, txtForSite.getText());
+				pst.setString(7,txtForFone.getText());
+				pst.setString(8,txtForContato.getText());
+				pst.setString(9,txtForEmail.getText());
+				pst.setString(10,txtForCep.getText());
+				pst.setString(11,txtForEndereco.getText());
+				pst.setString(12,txtForNumero.getText());
+				pst.setString(13,txtForComp.getText());
+				pst.setString(14,txtForBairro.getText());
+				pst.setString(15,txtForCidade.getText());
+				pst.setString(16,cboForUf.getSelectedItem().toString());
+				pst.setString(17, txtForId.getText());
+				// Executar a query e inserir o usuário no banco
+				pst.executeUpdate();
+				// Encerrar a conexão
+				JOptionPane.showMessageDialog(null, "Fornecedor Alterado com Sucesso!");
+				con.close();
+		} catch (Exception e) {
+			System.out.println(e);
+		}
+	
+		}	
+		
+	}
+	
+	private void excluirFornecedor() {
+		
+			// validação (confirmação de exclusão)
+			int confirma = JOptionPane.showConfirmDialog(null, "Confima a exclusão do usuário?", "Atenção!",
+					JOptionPane.YES_NO_OPTION);
+			if (confirma == JOptionPane.YES_OPTION) {
+				// lógica principal
+				String delete = "delete from fornecedores where idfor=?";
+				try {
+					// Estabelecer a conexão
+					Connection con = dao.conectar();
+					// Preparar a query(comando sql) substituindo a ? pelo idusu
+					PreparedStatement pst = con.prepareStatement(delete);
+					pst.setString(1, txtForId.getText());
+					// Executar a query
+					pst.executeUpdate();
+					// confimação
+					JOptionPane.showMessageDialog(null, "Fornecedor excluído com sucesso.");
+					// encerrar a conexão
+					con.close();
+				} catch (Exception e) {
+					System.out.println(e);
+				}
+			}
+		}
+		
+	}
+	
+
