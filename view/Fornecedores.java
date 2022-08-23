@@ -10,6 +10,10 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 
+import org.dom4j.Document;
+import org.dom4j.Element;
+import org.dom4j.io.SAXReader;
+
 import Atxy2k.CustomTextField.RestrictedTextField;
 import model.DAO;
 import net.proteanit.sql.DbUtils;
@@ -18,6 +22,7 @@ import java.awt.Toolkit;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.Iterator;
 
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -36,6 +41,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.net.URL;
 
 public class Fornecedores extends JDialog {
 
@@ -230,6 +236,11 @@ public class Fornecedores extends JDialog {
 		contentPanel.add(txtForCep);
 		
 		JButton btnBuscarCep = new JButton("Buscar CEP");
+		btnBuscarCep.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				buscarCEP();
+			}
+		});
 		btnBuscarCep.setBounds(562, 251, 123, 23);
 		contentPanel.add(btnBuscarCep);
 		
@@ -457,10 +468,7 @@ private void setarCaixasTexto() {
 	
 }
 
-private void limparCamposFornecedor() {
-	
-	((DefaultTableModel) tblFornecedor.getModel()).setRowCount(0);
-}
+
 	
 
 	/**
@@ -508,7 +516,7 @@ private void limparCamposFornecedor() {
 					txtForCidade.setText(rs.getString(16));
 					cboForUf.setSelectedItem(rs.getString(17));
 				}
-				con.close();
+				limparCampos();				con.close();
 			} catch (Exception e) {
 				System.out.println(e);
 			}
@@ -636,6 +644,7 @@ private void limparCamposFornecedor() {
 				pst.executeUpdate();
 				// Encerrar a conexão
 				JOptionPane.showMessageDialog(null, "Fornecedor Alterado com Sucesso!");
+				limparCampos();
 				con.close();
 		} catch (Exception e) {
 			System.out.println(e);
@@ -664,13 +673,86 @@ private void limparCamposFornecedor() {
 					// confimação
 					JOptionPane.showMessageDialog(null, "Fornecedor excluído com sucesso.");
 					// encerrar a conexão
+					limparCampos();
 					con.close();
 				} catch (Exception e) {
 					System.out.println(e);
 				}
 			}
 		}
+	
+	private void buscarCEP() {
+		String logradouro = "";
+		String tipoLogradouro = "";
+		String resultado = null;
+		String cep = txtForCep.getText();
+		try {
+			URL url = new URL("http://cep.republicavirtual.com.br/web_cep.php?cep=" + cep + "&formato=xml");
+			SAXReader xml = new SAXReader();
+			Document documento = xml.read(url);
+			Element root = documento.getRootElement();
+			for (Iterator<Element> it = root.elementIterator(); it.hasNext();) {
+				Element element = it.next();
+				if (element.getQualifiedName().equals("cidade")) {
+					txtForCidade.setText(element.getText());
+				}
+				if (element.getQualifiedName().equals("bairro")) {
+					txtForBairro.setText(element.getText());
+				}
+				if (element.getQualifiedName().equals("uf")) {
+					cboForUf.setSelectedItem(element.getText());
+				}
+				if (element.getQualifiedName().equals("tipo_logradouro")) {
+					tipoLogradouro = element.getText();
+				}
+				if (element.getQualifiedName().equals("logradouro")) {
+					logradouro = element.getText();
+				}
+				if (element.getQualifiedName().equals("resultado")) {
+					resultado = element.getText();
+					if (resultado.equals("1")) {
+
+					} else {
+						JOptionPane.showMessageDialog(null, "CEP não encontrado");
+					}
+				}
+
+			}
+			// Setar Campo Endereço
+			txtForEndereco.setText(tipoLogradouro + " " + logradouro);
+		} catch (Exception e) {
+			System.out.println(e);
+		}
+	}
+
+	/**
+	 * Limpar campos
+	 */
+	private void limparCamposFornecedor() {
+		// limpar tabela
+		((DefaultTableModel) tblFornecedor.getModel()).setRowCount(0);
+	}
+
+	private void limparCampos() {
+		txtForCnpj.setText(null);
+		txtForIe.setText(null);
+		txtForIm.setText(null);
+		txtForRazao.setText(null);
+		txtForFantasia.setText(null);
+		txtForSite.setText(null);
+		txtForFone.setText(null);
+		txtForContato.setText(null);
+		txtForEmail.setText(null);
+		txtForCep.setText(null);
+		txtForEndereco.setText(null);
+		txtForNumero.setText(null);
+		txtForComp.setText(null);
+		txtForBairro.setText(null);
+		txtForCidade.setText(null);
+		cboForUf.setSelectedItem("");
+		txtForId.setText(null);
 		
 	}
-	
+
+}
 

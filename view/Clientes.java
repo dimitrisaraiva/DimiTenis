@@ -1,37 +1,40 @@
 package view;
 
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
-
-import Atxy2k.CustomTextField.RestrictedTextField;
-import model.DAO;
-import net.proteanit.sql.DbUtils;
-
-import java.awt.Toolkit;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JTextField;
-import javax.swing.JComboBox;
-import javax.swing.DefaultComboBoxModel;
 import java.awt.Cursor;
-import javax.swing.ImageIcon;
-import javax.swing.JScrollPane;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import javax.swing.JTable;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLIntegrityConstraintViolationException;
-import java.awt.event.KeyAdapter;
+import java.util.Iterator;
+
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.border.EmptyBorder;
+
+import org.dom4j.Document;
+import org.dom4j.Element;
+import org.dom4j.io.SAXReader;
+
+import Atxy2k.CustomTextField.RestrictedTextField;
+import model.DAO;
+import net.proteanit.sql.DbUtils;
 
 public class Clientes extends JDialog {
 
@@ -164,6 +167,11 @@ public class Clientes extends JDialog {
 		contentPanel_1.add(txtCliCEP);
 		
 		JButton btnNewButton = new JButton("Buscar CEP");
+		btnNewButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+			buscarCEP();
+			}
+		});
 		btnNewButton.setBounds(585, 194, 123, 23);
 		contentPanel_1.add(btnNewButton);
 		
@@ -495,6 +503,7 @@ public class Clientes extends JDialog {
 			// Executar a query e inserir o usuário no banco
 			pst.executeUpdate();
 			// Encerrar a conexão
+			limparCampos();
 			JOptionPane.showMessageDialog(null, "Cliente Cadastrado com Sucesso!");
 			con.close();
 	} catch (Exception e) {
@@ -546,11 +555,12 @@ public class Clientes extends JDialog {
 				// Executar a query e alterar o cliente no banco
 				pst.executeUpdate();
 				// confirmação
+				limparCampos();
 				JOptionPane.showMessageDialog(null, "Cliente alterado com sucesso");
 				// Encerrar a conexão
 				con.close();
 			} catch (SQLIntegrityConstraintViolationException ex) {
-				JOptionPane.showMessageDialog(null, "CPF em uso.\nEscolha outro CPF");
+				JOptionPane.showMessageDialog(null, "CPF em uso.\n Escolha outro CPF");
 				txtCliCPF.setText(null);
 				txtCliCPF.requestFocus();
 			} catch (Exception e) {
@@ -575,6 +585,7 @@ public class Clientes extends JDialog {
 				// Executar a query e excluir o cliente do banco
 				pst.executeUpdate();
 				// confirmação
+				limparCampos();
 				JOptionPane.showMessageDialog(null, "Cliente excluido com sucesso");
 				// Encerrar a conexão
 				con.close();
@@ -583,7 +594,75 @@ public class Clientes extends JDialog {
 			}
 		}
 	}
+	
+	private void buscarCEP() {
+		String logradouro = "";
+		String tipoLogradouro = "";
+		String resultado = null;
+		String cep = txtCliCEP.getText();
+		try {
+			URL url = new URL("http://cep.republicavirtual.com.br/web_cep.php?cep=" + cep + "&formato=xml");
+			SAXReader xml = new SAXReader();
+			Document documento = xml.read(url);
+			Element root = documento.getRootElement();
+			for (Iterator<Element> it = root.elementIterator(); it.hasNext();) {
+				Element element = it.next();
+				if (element.getQualifiedName().equals("cidade")) {
+					txtCliCidade.setText(element.getText());
+				}
+				if (element.getQualifiedName().equals("bairro")) {
+					txtCliBairro.setText(element.getText());
+				}
+				if (element.getQualifiedName().equals("uf")) {
+					cboCliUF.setSelectedItem(element.getText());
+				}
+				if (element.getQualifiedName().equals("tipo_logradouro")) {
+					tipoLogradouro = element.getText();
+				}
+				if (element.getQualifiedName().equals("logradouro")) {
+					logradouro = element.getText();
+				}
+				if (element.getQualifiedName().equals("resultado")) {
+					resultado = element.getText();
+					if (resultado.equals("1")) {
+
+					} else {
+						JOptionPane.showMessageDialog(null, "CEP nÃ£o encontrado");
+					}
+				}
+
+			}
+			// Setar Campo Endereço
+			txtCliEndereco.setText(tipoLogradouro + " " + logradouro);
+		} catch (Exception e) {
+			System.out.println(e);
+		}
 	}
+
+	/**
+	 * Método responsavel por Limpar campos
+	 */
+	
+	private void limparCampos() {
+		txtCliId.setText(null);
+		txtCliNome.setText(null);
+		txtCliNascimento.setText(null);
+		txtCliFone.setText(null);
+		txtCliCPF.setText(null);
+		txtCliEmail.setText(null);
+		cboCliMark.setSelectedItem("");
+		txtCliCEP.setText(null);
+		txtCliEndereco.setText(null);
+		txtCliNumero.setText(null);
+		txtCliComp.setText(null);
+		txtCliBairro.setText(null);
+		txtCliCidade.setText(null);
+		cboCliUF.setSelectedItem("");
+		
+	}
+}
+	
+	
 	
 	
 
